@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Op-amp comparison</title>
+<style>
+:root{--bg:#fff;--fg:#1c1c1e;--mut:#6b6b70;--line:#e2e2e6;--acc:#0a6cff;--good:#d9f4df;--card:#f6f6f8}
+@media(prefers-color-scheme:dark){:root{--bg:#161618;--fg:#e8e8ea;--mut:#9a9aa0;--line:#2e2e33;--acc:#5aa2ff;--good:#1d4026;--card:#202024}}
+*{box-sizing:border-box}
+body{margin:0;padding:16px;background:var(--bg);color:var(--fg);font:14px/1.4 -apple-system,system-ui,sans-serif}
+h1{font-size:20px;margin:0 0 4px}
+p.note{color:var(--mut);margin:0 0 12px;font-size:12px}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+input[type=search],select{padding:6px 8px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg)}
+button{padding:6px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);cursor:pointer}
+button.pri{background:var(--acc);color:#fff;border-color:var(--acc)}
+.wrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px}
+table{border-collapse:collapse;width:100%;min-width:900px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{background:var(--card);cursor:pointer;position:sticky;top:0;user-select:none}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+tr:hover td{background:var(--card)}
+td.notes{white-space:normal;min-width:240px;color:var(--mut)}
+#cmp{margin-top:20px;display:none}
+#cmp h2{font-size:16px}
+.cmpt td.best{background:var(--good);font-weight:600}
+.cmpt td:first-child{color:var(--mut)}
+.cmpt{min-width:0;width:auto}
+.cmpt th{cursor:default;position:static}
+</style>
+</head>
+<body>
+<h1>Op-amp comparison</h1>
+<p class="note">Approximate typical values (25°C) from memory of the datasheets — verify against the original datasheet for real designs. Noise is at 1 kHz. THD+N is the typical datasheet figure near 1 kHz (test conditions differ between parts, "—" = not known). SNR is calculated, not from datasheets: signal level vs. the op-amp's input voltage noise over the chosen bandwidth (resistor and current noise ignored, so it is a best case), Iq is per channel, Vos is typical.</p>
+
+<div class="bar">
+  <input type="search" id="q" placeholder="Search (name, maker, notes)…">
+  <select id="fch"><option value="">All channels</option><option>1</option><option>2</option><option>4</option></select>
+  <select id="fin"><option value="">All input types</option><option>BJT</option><option>JFET</option><option>CMOS</option><option>Zero-drift</option><option>Discrete</option></select>
+  <select id="frr"><option value="">Rail-to-rail: any</option><option value="1">RR only</option></select>
+  <label>Signal <select id="sig"><option value="0.1">100 mV</option><option value="0.316">316 mV</option><option value="1" selected>1 Vrms</option><option value="2">2 Vrms</option><option value="5">5 Vrms</option></select></label>
+  <label>Bandwidth <select id="bw"><option value="20000" selected>20 kHz</option><option value="10000">10 kHz</option><option value="100000">100 kHz</option></select></label>
+  <button class="pri" id="go">Compare selected</button>
+  <button id="clr">Clear</button>
+</div>
+
+<div class="wrap"><table id="t"><thead></thead><tbody></tbody></table></div>
+
+<div id="cmp"><h2>Comparison</h2><div class="wrap"><table class="cmpt" id="ct"></table></div></div>
+
+<script>
+// name, maker, ch, type, GBW MHz, SR V/us, noise nV/rtHz, Vos mV, Vmin, Vmax (total supply), Iq mA/ch, RR, notes
+const D=[
+["NE5532","TI/Philips",2,"BJT",10,9,5,0.5,10,30,4,0,"Audio classic, cheap, drives 600Ω loads well"],
+["NE5534","TI/Philips",1,"BJT",10,13,3.5,0.5,10,30,4,0,"Low-noise single; needs compensation at G<3"],
+["JRC4558","JRC/NJM",2,"BJT",3,1.7,8,0.5,8,36,1.7,0,"Classic guitar-pedal chip (Tube Screamer); also sold as NJM4558 / RC4558"],
+["NJM4580","JRC",2,"BJT",15,5,8,0.5,8,36,3,0,"Popular audio dual, 'smooth' sound"],
+["LM833","TI/ON",2,"BJT",15,7,4.5,0.3,10,36,2.1,0,"Low-noise audio dual"],
+["LM4562","TI",2,"BJT",55,20,2.7,0.1,5,34,5,0,"Very low distortion (THD ~0.00003%)"],
+["LME49720","TI",2,"BJT",55,20,2.7,0.1,5,34,5,0,"Like LM4562, audio grade"],
+["LME49710","TI",1,"BJT",55,20,2.7,0.1,5,34,5,0,"Single version of LME49720"],
+["OPA1612","TI",2,"BJT",40,27,1.1,0.1,4.5,36,3.6,0,"Top-tier audio, very low noise and THD"],
+["OPA1642","TI",2,"JFET",11,20,5.1,0.5,4.5,36,1.8,0,"JFET input, low input bias current"],
+["OPA2134","TI/BB",2,"JFET",8,20,8,0.5,5,36,4,0,"JFET audio, good for high-impedance sources"],
+["OPA2604","TI/BB",2,"JFET",20,25,10,1,9,48,5.5,0,"Audio JFET, supply up to ±24V"],
+["OPA627","TI/BB",1,"JFET",16,55,5.2,0.1,9,36,7,0,"Fast precision JFET, expensive"],
+["AD797","Analog Dev.",1,"BJT",110,20,0.9,0.025,10,36,8.2,0,"Ultra-low noise, very low THD"],
+["LT1028","Analog Dev.",1,"BJT",75,11,0.85,0.02,8,44,7.4,0,"Ultra-low noise, precision"],
+["OP27","Analog Dev.",1,"BJT",8,2.8,3,0.01,8,44,3.3,0,"Precision low-noise classic"],
+["AD8620","Analog Dev.",2,"JFET",25,55,6,0.2,5,26,2.2,0,"Fast precision JFET dual"],
+["OPA2277","TI/BB",2,"BJT",1,0.8,8,0.01,4,36,0.8,0,"Precision, low Vos and drift"],
+["OPA2188","TI",2,"Zero-drift",2,0.8,8.8,0.006,4,36,0.43,1,"Zero-drift, RRIO, DC precision"],
+["OPA2350","TI/BB",2,"CMOS",38,22,5,0.5,2.7,5.5,5.2,1,"Fast RRIO for 3.3/5V"],
+["TL072","TI",2,"JFET",3,13,18,3,7,36,1.4,0,"Cheap JFET standard"],
+["TL082","TI",2,"JFET",4,13,16,3,7,36,1.4,0,"Like TL072, slightly faster"],
+["LF353","TI",2,"JFET",4,13,16,5,7,36,1.8,0,"Classic JFET dual"],
+["LF411","TI",1,"JFET",4,15,25,0.8,7,36,1.8,0,"Single JFET, low Vos"],
+["LM741","TI",1,"BJT",1,0.5,20,1,10,36,1.7,0,"Historic, not recommended for new designs"],
+["LM358","TI/ON",2,"BJT",1.1,0.5,40,2,3,32,0.35,0,"Single-supply, input to GND; cheap"],
+["LM324","TI/ON",4,"BJT",1.1,0.5,40,2,3,32,0.35,0,"Quad version of LM358"],
+["LMV358","TI",2,"CMOS",1,1,39,1,2.7,5.5,0.1,1,"Low-voltage RRIO"],
+["MCP6002","Microchip",2,"CMOS",1,0.6,28,0.7,1.8,6,0.1,1,"Low power, RRIO, 1.8V"],
+["TL071","TI",1,"JFET",3,13,18,3,7,36,1.4,0,"Single TL072; JFET staple of the last 40 years"],
+["TL074","TI",4,"JFET",3,13,18,3,7,36,1.4,0,"Quad TL072; common in mixers and synths"],
+["RC4558","TI",2,"BJT",3,1.7,8,0.5,8,36,1.7,0,"TI's 4558, same family as JRC4558; pedals"],
+["MC1458","ON/Motorola",2,"BJT",1,0.5,20,1,10,36,1.7,0,"Dual 741, old budget workhorse"],
+["MC33078","ON",2,"BJT",16,7,4.5,0.15,10,36,2,0,"Low-noise audio dual, NE5532 alternative"],
+["MC33079","ON",4,"BJT",16,7,4.5,0.15,10,36,2,0,"Quad version of MC33078"],
+["NJM2068","JRC/NJM",2,"BJT",27,6,5,0.5,8,36,3,0,"Audio dual, popular in pedals and hi-fi mods"],
+["OP07","Analog Dev.",1,"BJT",0.6,0.3,9.6,0.03,6,36,2.7,0,"Precision, very low Vos; the 1970s classic"],
+["OP37","Analog Dev.",1,"BJT",63,17,3,0.01,8,44,3.3,0,"Fast OP27 (stable for G≥5)"],
+["AD712","Analog Dev.",2,"JFET",3,16,16,0.3,9,36,2.8,0,"Precision JFET dual, used in hi-fi and DACs"],
+["LF356","TI",1,"JFET",5,12,12,3,10,36,5,0,"Fast JFET single, 80s favourite"],
+["CA3140","Intersil/Renesas",1,"CMOS",4.5,9,40,5,4,36,2,0,"MOSFET input, 80s classic, ultra-high input impedance"],
+["LM2904","TI/ON",2,"BJT",1,0.5,40,2,3,26,0.35,0,"Automotive-grade LM358, extremely common"],
+["LMV321","TI",1,"CMOS",1,1,39,1,2.7,5.5,0.1,1,"Single LMV358; cheap 3.3/5V part"],
+["TLC2272","TI",2,"CMOS",2.2,3.6,9,0.3,4.4,16,1.1,1,"Low-noise RRIO CMOS dual"],
+["OPA2340","TI/BB",2,"CMOS",5.5,6,25,0.5,2.5,5.5,0.95,1,"RRIO single-supply, popular in 5V designs"],
+["TLV9062","TI",2,"CMOS",10,6.5,10.5,0.3,1.8,5.5,0.54,1,"Modern cheap RRIO dual, replaces MCP600x/LMV358"],
+["OPA1611","TI",1,"BJT",40,27,1.1,0.1,4.5,36,3.6,0,"Single OPA1612"],
+["MUSES8920","NJR (Nisshinbo)",2,"BJT",11,25,8,null,7,34,null,0,"Boutique audio dual; datasheet: ±3.5–17V, ~12 mA total supply current (distributor listing)"],
+["MUSES01","NJR (Nisshinbo)",1,"n/a",null,null,null,null,null,null,null,0,"Boutique audio single; specs not verified, check the NJR datasheet"],
+["MUSES02","NJR (Nisshinbo)",2,"n/a",null,null,null,null,null,null,null,0,"Boutique audio dual; specs not verified, check the NJR datasheet"],
+["Sparkos SS3602","Sparkos Labs",2,"Discrete",null,null,null,null,null,null,13.8,0,"Discrete dual in a DIP8 footprint; ~27.5 mA per device (reviewer measurement), THD ~0.0003%"],
+["Sparkos SS3601","Sparkos Labs",1,"Discrete",null,null,null,null,null,null,null,0,"Discrete single in a DIP8 footprint; specs not published in a datasheet I could find"],
+["Burson V5i Vivid","Burson",2,"Discrete",null,null,null,null,null,null,null,0,"Discrete dual in a DIP8 footprint; manufacturer publishes almost no specs"],
+["Marantz HDAM","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Hyper Dynamic Amplifier Module: proprietary discrete module in Marantz CD/SACD players and amps, not a standard DIP8 drop-in; no public datasheet"],
+["Marantz HDAM-SA2","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Second-gen HDAM (SA = Super Audio), used in mid/high-end Marantz players; no public datasheet"],
+["Marantz HDAM-SA3","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Third-gen HDAM, newer Marantz models; no public datasheet"]
+];
+const COLS=[
+ ["sel","",0],["name","Model",0],["maker","Maker",0],["ch","Ch.",1],["type","Input",0],
+ ["gbw","GBW MHz",1],["sr","SR V/µs",1],["noise","Noise nV/√Hz",1],["snr","SNR dB",1],["thd","THD+N %",1],["vos","Vos mV",1],
+ ["vsup","Supply V",0],["iq","Iq mA/ch",1],["rr","RR",0],["notes","Notes",0]
+];
+const ROWS=D.map(r=>({name:r[0],maker:r[1],ch:r[2],type:r[3],gbw:r[4],sr:r[5],noise:r[6],vos:r[7],
+ vmin:r[8],vmax:r[9],vsup:r[8]===null?"—":r[8]+"–"+r[9],iq:r[10],rr:r[11],notes:r[12]}));
+// typical THD+N % at ~1 kHz (conditions differ per datasheet; blank = not reliably known)
+const THD={"Sparkos SS3602":0.0003,NE5532:0.001,NE5534:0.0005,NJM4580:0.0005,JRC4558:0.005,RC4558:0.005,LM833:0.002,LM4562:0.00003,
+ LME49720:0.00003,LME49710:0.00003,OPA1612:0.000015,OPA1611:0.000015,OPA1642:0.00005,OPA2134:0.00008,
+ OPA2604:0.0003,OPA627:0.00003,AD797:0.0001,OPA2277:0.0002,OPA2350:0.0006,TL072:0.003,TL082:0.003,
+ TL071:0.003,TL074:0.003,LM358:0.02,LM324:0.02,LM2904:0.02,MC33078:0.002,MC33079:0.002,AD712:0.0003};
+ROWS.forEach(r=>r.thd=r.name in THD?THD[r.name]:null);
+const nv=v=>v===null?"—":v;
+const fmtThd=v=>v===null?"—":v.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
+// higher is better / lower is better for compare highlighting
+const BEST={gbw:1,sr:1,noise:-1,snr:1,thd:-1,vos:-1,iq:-1};
+let sortK="name",sortD=1,sel=new Set();
+const $=s=>document.querySelector(s);
+
+$("#t thead").innerHTML="<tr>"+COLS.map(c=>`<th class="${c[2]?"num":""}" data-k="${c[0]}">${c[1]}</th>`).join("")+"</tr>";
+$("#t thead").onclick=e=>{const k=e.target.dataset.k;if(!k||k==="sel")return;
+ sortD=sortK===k?-sortD:1;sortK=k;render();};
+
+function calcSnr(){const sg=+$("#sig").value,bw=+$("#bw").value;
+ ROWS.forEach(r=>r.snr=r.noise===null?null:Math.round(20*Math.log10(sg/(r.noise*1e-9*Math.sqrt(bw)))*10)/10);}
+function render(){calcSnr();
+ const q=$("#q").value.toLowerCase(),ch=$("#fch").value,ty=$("#fin").value,rr=$("#frr").value;
+ const nz=x=>x.toLowerCase().replace(/[^a-z0-9]/g,""),toks=q.split(/\s+/).map(nz).filter(Boolean);
+ let rs=ROWS.filter(r=>(!toks.length||toks.every(t=>nz(r.name+" "+r.maker+" "+r.notes+" "+r.type).includes(t)))
+  &&(!ch||r.ch==ch)&&(!ty||r.type===ty)&&(!rr||r.rr));
+ rs.sort((a,b)=>{const x=a[sortK],y=b[sortK];
+  if(typeof x==="number"||typeof y==="number"||x===null||y===null)return ((x===null?Infinity:x)-(y===null?Infinity:y))*sortD||0;
+  return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*sortD;});
+ $("#t tbody").innerHTML=rs.map(r=>`<tr>
+ <td><input type="checkbox" data-n="${r.name}" ${sel.has(r.name)?"checked":""}></td>
+ <td><b>${r.name}</b></td><td>${r.maker}</td><td class="num">${r.ch}</td><td>${r.type}</td>
+ <td class="num">${nv(r.gbw)}</td><td class="num">${nv(r.sr)}</td><td class="num">${nv(r.noise)}</td><td class="num">${nv(r.snr)}</td><td class="num">${fmtThd(r.thd)}</td>
+ <td class="num">${nv(r.vos)}</td><td>${r.vsup}</td><td class="num">${nv(r.iq)}</td>
+ <td>${r.rr?"yes":"—"}</td><td class="notes">${r.notes}</td></tr>`).join("");
+}
+$("#t tbody").onchange=e=>{const n=e.target.dataset.n;if(!n)return;
+ e.target.checked?sel.add(n):sel.delete(n);};
+["#q","#fch","#fin","#frr","#sig","#bw"].forEach(s=>$(s).oninput=render);
+$("#clr").onclick=()=>{sel.clear();$("#cmp").style.display="none";render();};
+
+$("#go").onclick=()=>{
+ const rs=ROWS.filter(r=>sel.has(r.name));
+ if(rs.length<2){alert("Select at least 2 op-amps");return;}
+ const rows=[["Maker","maker"],["Channels","ch"],["Input","type"],["GBW (MHz)","gbw"],["Slew rate (V/µs)","sr"],
+  ["Noise (nV/√Hz)","noise"],["SNR (dB)","snr"],["THD+N (%)","thd"],["Vos (mV)","vos"],["Supply (V)","vsup"],["Iq (mA/ch)","iq"],["Rail-to-rail","rr"],["Notes","notes"]];
+ let h="<tr><th></th>"+rs.map(r=>`<th>${r.name}</th>`).join("")+"</tr>";
+ for(const [lab,k] of rows){
+  let best=null;
+  if(BEST[k]){const v=rs.map(r=>r[k]).filter(x=>x!==null);best=BEST[k]>0?Math.max(...v):Math.min(...v);}
+  h+=`<tr><td>${lab}</td>`+rs.map(r=>{const v=r[k];
+   const txt=k==="rr"?(v?"yes":"—"):k==="thd"?fmtThd(v):nv(v);
+   return `<td class="${best!==null&&v===best?"best":""}">${txt}</td>`;}).join("")+"</tr>";
+ }
+ $("#ct").innerHTML=h;$("#cmp").style.display="block";$("#cmp").scrollIntoView({behavior:"smooth"});
+};
+render();
+</script>
+</body>
+</html>

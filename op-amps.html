@@ -32,7 +32,7 @@ td.notes{white-space:normal;min-width:240px;color:var(--mut)}
 </head>
 <body>
 <h1>Op-amp comparison</h1>
-<p class="note">Approximate typical values (25°C) from memory of the datasheets — verify against the original datasheet for real designs. Noise is at 1 kHz. THD+N is the typical datasheet figure near 1 kHz (test conditions differ between parts, "—" = not known). SNR is calculated, not from datasheets: signal level vs. the op-amp's input voltage noise over the chosen bandwidth (resistor and current noise ignored, so it is a best case), Iq is per channel, Vos is typical.</p>
+<p class="note">Approximate typical values (25°C) from memory of the datasheets — verify against the original datasheet for real designs. Noise is at 1 kHz. Year is the approximate year of introduction, from memory ("—" = not sure; for some parts it is the earliest dated datasheet or product I could find). THD+N is the typical datasheet figure near 1 kHz (test conditions differ between parts, "—" = not known). SNR is calculated, not from datasheets: signal level vs. the op-amp's input voltage noise over the chosen bandwidth (resistor and current noise ignored, so it is a best case), Iq is per channel, Vos is typical.</p>
 
 <div class="bar">
   <input type="search" id="q" placeholder="Search (name, maker, notes)…">
@@ -105,22 +105,63 @@ const D=[
 ["Sparkos SS3602","Sparkos Labs",2,"Discrete",null,null,null,null,null,null,13.8,0,"Discrete dual in a DIP8 footprint; ~27.5 mA per device (reviewer measurement), THD ~0.0003%"],
 ["Sparkos SS3601","Sparkos Labs",1,"Discrete",null,null,null,null,null,null,null,0,"Discrete single in a DIP8 footprint; specs not published in a datasheet I could find"],
 ["Burson V5i Vivid","Burson",2,"Discrete",null,null,null,null,null,null,null,0,"Discrete dual in a DIP8 footprint; manufacturer publishes almost no specs"],
+["OPA1656","TI",2,"JFET",53,24,4.3,null,4.5,36,3.9,0,"FET-input audio dual; noise is 2.9 nV at 10 kHz; THD+N −131 dB"],
+["OPA1652","TI",2,"JFET",18,10,4.5,null,4.5,36,2,0,"FET-input audio dual; sources disagree on rail-to-rail output"],
+["OPA1622","TI",2,"BJT",32,10,2.8,null,4,36,2.6,0,"Headphone driver, 145 mA output; THD at 142 mW into 32 Ω"],
+["OPA1688","TI",2,"n/a",10,null,8,null,4.5,36,1.6,0,"Audio dual; slew rate not found"],
+["LME49860","TI",2,"BJT",55,20,2.5,null,5,44,5,0,"Dual with higher supply range than LM4562; THD at 3 Vrms"],
+["LME49740","TI",4,"BJT",55,20,2.7,null,5,34,null,0,"Quad of the LME4972x family; supply current not found"],
+["OPA2107","TI/BB",2,"JFET",4.5,18,9,0.1,9,36,null,0,"Old Burr-Brown JFET dual; sources disagree on Iq (2.5–4.5 mA)"],
+["OPA2111","TI/BB",2,"JFET",2,2,7,null,null,null,2.5,0,"Old low-noise JFET dual; only aggregator data"],
+["NJM5532","JRC/NJM",2,"BJT",10,8,5,null,null,null,null,0,"JRC's NE5532; 8 V/µs in the newer datasheet (9 for NJM5532C)"],
+["LT1057","Analog Dev.",2,"JFET",5,14,13,0.15,null,null,null,0,"Precision JFET dual; supply range not found"],
+["LT1115","Analog Dev.",1,"n/a",70,15,0.9,null,8,44,8.5,0,"Ultra-low-noise audio single; THD 0.002% at 10 kHz (not 1 kHz)"],
+["LT1364","Analog Dev.",2,"n/a",70,1000,9,null,3,36,null,0,"Fast voltage-feedback dual; noise frequency not stated"],
+["OP275","Analog Dev.",2,"BJT",9,22,6,0.2,9,44,null,0,"Bipolar/JFET audio dual; THD+N at 3 Vrms"],
+["OPA2227","TI/BB",2,"BJT",8,2.3,3,0.005,5,36,3.7,0,"Unity-gain-stable OP27 successor"],
+["OPA2228","TI/BB",2,"BJT",33,11,3,0.005,5,36,3.7,0,"Decompensated OPA2227 (stable for G≥5)"],
+["LM308","TI/ON",1,"BJT",null,0.3,null,null,null,null,0.3,0,"The ProCo RAT pedal chip; needs external compensation"],
+["LM301","TI",1,"BJT",null,0.5,null,null,10,36,1.8,0,"Classic general-purpose single; external compensation"],
+["TL061","TI",1,"JFET",1,3.5,42,3,null,null,0.2,0,"Low-power JFET single"],
+["TL062","TI",2,"JFET",1,3.5,42,3,null,null,0.2,0,"Low-power JFET dual"],
+["LF351","TI/National",1,"JFET",4,13,null,null,null,null,1.8,0,"JFET single; sources disagree on noise and slew rate"],
+["LF347","TI/National",4,"JFET",4,13,20,null,null,null,1.8,0,"JFET quad; GBW 3–4 MHz depending on source"],
+["AD8066","Analog Dev.",2,"JFET",null,180,7,null,5,24,6.4,1,"Fast FET dual with RR output; 145 MHz is −3 dB bandwidth; noise at 10 kHz"],
+["AD8512","Analog Dev.",2,"JFET",8,20,7.6,null,9,30,2.5,0,"Precision JFET dual; secondary-source data"],
+["ADA4898","Analog Dev.",1,"BJT",null,55,0.9,null,10,32,8,0,"Ultra-low-noise, −3 dB BW 65 MHz (G=+1); dual ADA4898-2 exists"],
+["LMH6624","TI",1,"BJT",1500,350,0.92,null,5,12,null,0,"Ultra-low-noise wideband single"],
+["LM6171","TI",1,"BJT",100,3600,12,null,null,null,2.5,0,"Very fast voltage-feedback amp"],
 ["Marantz HDAM","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Hyper Dynamic Amplifier Module: proprietary discrete module in Marantz CD/SACD players and amps, not a standard DIP8 drop-in; no public datasheet"],
 ["Marantz HDAM-SA2","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Second-gen HDAM (SA = Super Audio), used in mid/high-end Marantz players; no public datasheet"],
 ["Marantz HDAM-SA3","Marantz",1,"Discrete",null,null,null,null,null,null,null,0,"Third-gen HDAM, newer Marantz models; no public datasheet"]
 ];
 const COLS=[
- ["sel","",0],["name","Model",0],["maker","Maker",0],["ch","Ch.",1],["type","Input",0],
+ ["sel","",0],["name","Model",0],["maker","Maker",0],["ch","Ch.",1],["year","Year ≈",1],["type","Input",0],
  ["gbw","GBW MHz",1],["sr","SR V/µs",1],["noise","Noise nV/√Hz",1],["snr","SNR dB",1],["thd","THD+N %",1],["vos","Vos mV",1],
  ["vsup","Supply V",0],["iq","Iq mA/ch",1],["rr","RR",0],["notes","Notes",0]
 ];
 const ROWS=D.map(r=>({name:r[0],maker:r[1],ch:r[2],type:r[3],gbw:r[4],sr:r[5],noise:r[6],vos:r[7],
  vmin:r[8],vmax:r[9],vsup:r[8]===null?"—":r[8]+"–"+r[9],iq:r[10],rr:r[11],notes:r[12]}));
 // typical THD+N % at ~1 kHz (conditions differ per datasheet; blank = not reliably known)
-const THD={"Sparkos SS3602":0.0003,NE5532:0.001,NE5534:0.0005,NJM4580:0.0005,JRC4558:0.005,RC4558:0.005,LM833:0.002,LM4562:0.00003,
+const THD={"Sparkos SS3602":0.0003,OPA1656:0.000029,OPA1652:0.00005,OPA1622:0.000018,LME49860:0.00003,LME49740:0.00003,OP275:0.0006,OPA2227:0.00005,OPA2228:0.00005,NE5532:0.001,NE5534:0.0005,NJM4580:0.0005,JRC4558:0.005,RC4558:0.005,LM833:0.002,LM4562:0.00003,
  LME49720:0.00003,LME49710:0.00003,OPA1612:0.000015,OPA1611:0.000015,OPA1642:0.00005,OPA2134:0.00008,
  OPA2604:0.0003,OPA627:0.00003,AD797:0.0001,OPA2277:0.0002,OPA2350:0.0006,TL072:0.003,TL082:0.003,
  TL071:0.003,TL074:0.003,LM358:0.02,LM324:0.02,LM2904:0.02,MC33078:0.002,MC33079:0.002,AD712:0.0003};
+// approximate year of introduction (from memory; blank = not sure)
+const YEAR={LM741:1968,OP07:1975,LM358:1976,CA3140:1976,TL071:1978,TL072:1978,TL074:1978,
+ NE5532:1979,NE5534:1979,OP27:1979,OP37:1979,RC4558:1974,AD797:1990,"Marantz HDAM":1992,
+ LM4562:2007,LME49720:2007,LME49710:2007,OPA1612:2010,OPA1611:2010,OPA627:1989,OPA2277:1999,LM2904:1976,TLC2272:1997,TLV9062:2019,JRC4558:1977,LM833:1983,NJM4580:1990,
+ OPA2188:2011,TL082:1977,MUSES8920:2011,MUSES02:2009,"Marantz HDAM-SA3":2007,
+ // upper bounds: the part is no newer than this (earliest dated datasheet/product found)
+ OPA2134:1996,OPA2604:1991,OPA2340:1997,AD8620:2001,LMV358:2003,LMV321:2003,
+ MCP6002:2008,MC1458:1971,MUSES01:2009,"Marantz HDAM-SA2":2007,
+ OPA1642:2009,LT1028:1987,OPA2350:2000,AD712:1986,LF356:1974,OPA2227:1998,OPA2228:1998,LME49740:2008,
+ OPA1622:2015,OPA1688:2015,OPA1656:2019,OPA1652:2011,LME49860:2007,OPA2107:1989,OPA2111:1984,
+ TL061:1978,TL062:1978,AD8066:2002,AD8512:2002,ADA4898:2008,LMH6624:2003,
+ LM301:1968,LM308:1969,LM324:1972,LF351:1977,LF353:1977,LF347:1977,LF411:1980,NJM5532:1980,LT1057:1986,
+ NJM2068:1988,MC33078:1988,MC33079:1988,OP275:1992,LT1115:1992,LT1364:1994,"Sparkos SS3601":2014,LM6171:1995,"Burson V5i Vivid":2016,"Sparkos SS3602":2017};
+const fy=r=>r.year===null?"—":r.year;
+ROWS.forEach(r=>r.year=r.name in YEAR?YEAR[r.name]:null);
 ROWS.forEach(r=>r.thd=r.name in THD?THD[r.name]:null);
 const nv=v=>v===null?"—":v;
 const fmtThd=v=>v===null?"—":v.toFixed(6).replace(/0+$/,"").replace(/\.$/,"");
@@ -145,7 +186,7 @@ function render(){calcSnr();
   return (typeof x==="number"?x-y:String(x).localeCompare(String(y)))*sortD;});
  $("#t tbody").innerHTML=rs.map(r=>`<tr>
  <td><input type="checkbox" data-n="${r.name}" ${sel.has(r.name)?"checked":""}></td>
- <td><b>${r.name}</b></td><td>${r.maker}</td><td class="num">${r.ch}</td><td>${r.type}</td>
+ <td><b>${r.name}</b></td><td>${r.maker}</td><td class="num">${r.ch}</td><td class="num">${fy(r)}</td><td>${r.type}</td>
  <td class="num">${nv(r.gbw)}</td><td class="num">${nv(r.sr)}</td><td class="num">${nv(r.noise)}</td><td class="num">${nv(r.snr)}</td><td class="num">${fmtThd(r.thd)}</td>
  <td class="num">${nv(r.vos)}</td><td>${r.vsup}</td><td class="num">${nv(r.iq)}</td>
  <td>${r.rr?"yes":"—"}</td><td class="notes">${r.notes}</td></tr>`).join("");
@@ -158,14 +199,14 @@ $("#clr").onclick=()=>{sel.clear();$("#cmp").style.display="none";render();};
 $("#go").onclick=()=>{
  const rs=ROWS.filter(r=>sel.has(r.name));
  if(rs.length<2){alert("Select at least 2 op-amps");return;}
- const rows=[["Maker","maker"],["Channels","ch"],["Input","type"],["GBW (MHz)","gbw"],["Slew rate (V/µs)","sr"],
+ const rows=[["Maker","maker"],["Channels","ch"],["Year (≈)","year"],["Input","type"],["GBW (MHz)","gbw"],["Slew rate (V/µs)","sr"],
   ["Noise (nV/√Hz)","noise"],["SNR (dB)","snr"],["THD+N (%)","thd"],["Vos (mV)","vos"],["Supply (V)","vsup"],["Iq (mA/ch)","iq"],["Rail-to-rail","rr"],["Notes","notes"]];
  let h="<tr><th></th>"+rs.map(r=>`<th>${r.name}</th>`).join("")+"</tr>";
  for(const [lab,k] of rows){
   let best=null;
   if(BEST[k]){const v=rs.map(r=>r[k]).filter(x=>x!==null);best=BEST[k]>0?Math.max(...v):Math.min(...v);}
   h+=`<tr><td>${lab}</td>`+rs.map(r=>{const v=r[k];
-   const txt=k==="rr"?(v?"yes":"—"):k==="thd"?fmtThd(v):nv(v);
+   const txt=k==="rr"?(v?"yes":"—"):k==="thd"?fmtThd(v):k==="year"?fy(r):nv(v);
    return `<td class="${best!==null&&v===best?"best":""}">${txt}</td>`;}).join("")+"</tr>";
  }
  $("#ct").innerHTML=h;$("#cmp").style.display="block";$("#cmp").scrollIntoView({behavior:"smooth"});
